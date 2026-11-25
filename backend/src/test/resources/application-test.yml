@@ -1,0 +1,18 @@
+de:
+  flapdoodle:
+    mongodb:
+      embedded:
+        version: 7.0.14
+
+app:
+  jwt:
+    # Test-only key (base64 of 48 random bytes). Never use in production.
+    secret: dGVzdC1vbmx5LXNlY3JldC1rZXktZm9yLWFqcC1maWdodGVyLW9zLWludGVncmF0aW9uLXRlc3Rz
+  limits:
+    max-entities-per-collection: 50
+    max-entity-bytes: 20000
+
+logging:
+  level:
+    org.mongodb.driver: WARN
+    de.flapdoodle: WARN

@@ -1,0 +1,17 @@
+# Dependencies & builds
+node_modules/
+frontend/dist/
+backend/target/
+
+# Secrets & local config
+.env
+.env.*
+!.env.example
+*.local
+
+# IDE / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db

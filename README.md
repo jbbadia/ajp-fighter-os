@@ -12,7 +12,17 @@ Doble clic en **`arrancar.bat`**: abre Docker si hace falta, arranca MongoDB, co
 La app completa queda en **http://localhost:8080** y la ventana muestra también las direcciones para el móvil.
 No cierres esa ventana mientras uses la app.
 
-### Desde el móvil
+### Desde el móvil (en cualquier sitio)
+
+La app está publicada en **GitHub Pages**, con HTTPS y sin depender del ordenador:
+**https://jbbadia.github.io/ajp-fighter-os/**
+
+- Funciona en **modo local**: los datos se guardan en el navegador de cada dispositivo (no hay login ni servidor).
+- Para pasar datos entre el PC y el móvil: Perfil → **Copia de seguridad** en uno y **Restaurar copia** en el otro.
+- Cada cambio que se sube a la rama `main` se publica solo: GitHub Actions pasa los tests, compila y publica
+  (`.github/workflows/pages.yml`). Si un test falla, no se publica nada.
+
+### Versión con servidor (en el PC)
 
 - **En el wifi de casa:** abre en el móvil la dirección `http://192.168.x.x:8080` que muestra la ventana.
 - **Fuera de casa:** instala [Tailscale](https://tailscale.com) (gratis) en el ordenador y en el móvil con la misma cuenta.

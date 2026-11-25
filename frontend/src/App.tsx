@@ -1,9 +1,10 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { bootstrap, resetStores, setStoreErrorHandler, useProfile } from '@/data'
 import { markSessionExpired, restoreSession, useAuth } from '@/data/auth'
 import { DATA_MODE } from '@/data/adapters'
 import { setUnauthorizedHandler } from '@/data/http'
+import { startAutoSync, useSyncStatus } from '@/data/sync'
 import { AppShell } from '@/components/layout/AppShell'
 import { ToastProvider, useToast } from '@/components/ui/toast'
 import { Button } from '@/components/ui/button'
@@ -37,6 +38,21 @@ function StoreErrors() {
   return null
 }
 
+/** Warns once when the cloud sync starts failing (details in Perfil). */
+function SyncErrors() {
+  const toast = useToast()
+  const { state, error } = useSyncStatus()
+  const shown = useRef<string | null>(null)
+  useEffect(() => {
+    if (state === 'error' && error && error !== shown.current) {
+      shown.current = error
+      toast(`Sincronización: ${error}`, 'error')
+    }
+    if (state === 'ok') shown.current = null
+  }, [state, error, toast])
+  return null
+}
+
 const Center = ({ children }: { children: React.ReactNode }) => (
   <div className="flex min-h-dvh flex-col items-center justify-center gap-3 p-6 text-center text-sm text-muted-foreground">{children}</div>
 )
@@ -59,6 +75,8 @@ function AuthenticatedApp({ userId, userName }: { userId: string; userName: stri
     }
   }, [userId, userName, attempt])
 
+  useEffect(() => (state === 'ready' ? startAutoSync() : undefined), [state])
+
   if (state === 'loading') return <Center>Cargando AJP Fighter OS…</Center>
   if (state === 'error')
     return (
@@ -72,6 +90,7 @@ function AuthenticatedApp({ userId, userName }: { userId: string; userName: stri
     <>
       <ThemeSync />
       <StoreErrors />
+      <SyncErrors />
       <SessionDialogsProvider>
         <Routes>
           <Route element={<AppShell />}>

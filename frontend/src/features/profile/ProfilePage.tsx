@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/toast'
 import { BELT_LABEL } from '@/domain/sessionMeta'
 import { DataCard } from './DataCard'
+import { SyncCard } from './SyncCard'
+import { DATA_MODE } from '@/data/adapters'
 import { replanFutureTemplateSessions } from '@/data/plan'
 import { requiredNumber, validate, type FieldErrors } from '@/lib/validation'
 import { kgToUnit, unitToKg } from '@/lib/units'
@@ -316,6 +318,7 @@ export function ProfilePage() {
           </div>
         </Section>
 
+        {DATA_MODE === 'local' && <SyncCard />}
         <DataCard />
 
         <div className="lg:col-span-2 flex justify-end">

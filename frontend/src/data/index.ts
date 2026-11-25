@@ -16,6 +16,7 @@ import { addDays, toISODate, todayISO, weekRange } from '@/lib/dates'
 import { createAdapter } from './adapters'
 import { CollectionStore, useCollection } from './store'
 import { PLAN_VERSION, replanFutureTemplateSessions } from './plan'
+import { isSyncConfigured, syncNow } from './sync'
 import { initialExercises, initialProfile, initialRoutines, migrateProfile, PROFILE_ID } from './seed'
 
 const adapter = createAdapter()
@@ -71,6 +72,8 @@ export function resetStores() {
 
 async function doBootstrap(userName?: string) {
   await Promise.all(stores.map((s) => s.hydrate()))
+  // Bring the other devices' data first, so a fresh device never creates a second initial plan.
+  if (isSyncConfigured()) await syncNow()
   const existing = profileStore.get(PROFILE_ID)
   if (!existing) {
     const profile = profileStore.create({ ...initialProfile(userName), planVersion: PLAN_VERSION })

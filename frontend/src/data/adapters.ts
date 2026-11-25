@@ -22,12 +22,31 @@ export interface PersistenceAdapter {
   load<T extends Entity>(collection: CollectionName): Promise<T[]>
   upsert<T extends Entity>(collection: CollectionName, item: T): Promise<void>
   remove(collection: CollectionName, id: string): Promise<void>
+  /** Overwrite a whole collection at once (used by cloud sync). */
+  replaceCollection?<T extends Entity>(collection: CollectionName, items: T[]): Promise<void>
 }
 
 export type DataMode = 'api' | 'local'
 export const DATA_MODE: DataMode = import.meta.env.VITE_DATA_MODE === 'local' ? 'local' : 'api'
 
 const PREFIX = 'ajp-fighter-os:v1:'
+const TOMBSTONES_KEY = PREFIX + '__deleted'
+
+/** When each record was deleted on this device, so the deletion reaches the other devices on sync. */
+export type Tombstones = Partial<Record<CollectionName, Record<string, string>>>
+
+export function readTombstones(): Tombstones {
+  try {
+    const parsed: unknown = JSON.parse(localStorage.getItem(TOMBSTONES_KEY) ?? '{}')
+    return parsed && typeof parsed === 'object' ? (parsed as Tombstones) : {}
+  } catch {
+    return {}
+  }
+}
+
+export function writeTombstones(t: Tombstones) {
+  localStorage.setItem(TOMBSTONES_KEY, JSON.stringify(t))
+}
 
 export class LocalStorageAdapter implements PersistenceAdapter {
   private read<T>(collection: CollectionName): T[] {
@@ -63,6 +82,13 @@ export class LocalStorageAdapter implements PersistenceAdapter {
       collection,
       this.read<Entity>(collection).filter((x) => x.id !== id),
     )
+    const t = readTombstones()
+    t[collection] = { ...t[collection], [id]: new Date().toISOString() }
+    writeTombstones(t)
+  }
+
+  async replaceCollection<T extends Entity>(collection: CollectionName, items: T[]): Promise<void> {
+    this.write(collection, items)
   }
 }
 

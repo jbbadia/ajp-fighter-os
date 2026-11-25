@@ -18,7 +18,12 @@ La app está publicada en **GitHub Pages**, con HTTPS y sin depender del ordenad
 **https://jbbadia.github.io/ajp-fighter-os/**
 
 - Funciona en **modo local**: los datos se guardan en el navegador de cada dispositivo (no hay login ni servidor).
-- Para pasar datos entre el PC y el móvil: Perfil → **Copia de seguridad** en uno y **Restaurar copia** en el otro.
+- **Sincronizar PC y móvil** (Perfil): cada dispositivo fusiona sus datos con un archivo JSON en un repositorio
+  **privado** de GitHub (`usuario/ajp-fighter-os-datos`) usando un token de grano fino con permiso
+  *Contents: Read and write* solo sobre ese repositorio. Gana la edición más reciente de cada registro y los borrados
+  se propagan. El token se guarda solo en el navegador. Se sincroniza tras cada cambio, al volver a la app y cada minuto
+  (`frontend/src/data/sync.ts`, fusión en `syncMerge.ts`).
+- Sin sincronización, también se pueden pasar datos con Perfil → **Copia de seguridad** / **Restaurar copia**.
 - Cada cambio que se sube a la rama `main` se publica solo: GitHub Actions pasa los tests, compila y publica
   (`.github/workflows/pages.yml`). Si un test falla, no se publica nada.
 
@@ -69,7 +74,7 @@ Frontend: `VITE_API_URL` (por defecto `/api`, con proxy de Vite al puerto 8080) 
 ## Pruebas
 
 ```bash
-cd frontend && npm test        # 19 tests de lógica de dominio (semáforo, alertas, métricas, récords, adaptación, CSV)
+cd frontend && npm test        # 26 tests: lógica de dominio (semáforo, alertas, métricas, récords, adaptación, CSV) y fusión de la sincronización
 ```
 
 ---

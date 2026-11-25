@@ -76,6 +76,13 @@ export class CollectionStore<T extends Entity> {
     items.forEach((i) => this.persist(() => this.adapter.upsert(this.name, i)))
   }
 
+  /** Replace the items with data already merged by the cloud sync; one write for the whole collection. */
+  applySynced(items: T[]) {
+    this.items = [...items]
+    this.emit()
+    this.persist(() => this.adapter.replaceCollection?.(this.name, items) ?? Promise.resolve())
+  }
+
   /** Resolves when every pending write has been attempted. */
   flush(): Promise<unknown> {
     return this.queue

@@ -7,7 +7,7 @@ import { consistencyStreak, goalProgress, type WeekStats } from './analytics'
 import { suggestAdjustments } from './adaptation'
 import { generatePlannedSessions } from './planTemplate'
 import { toCSV } from '@/lib/export'
-import { initialProfile } from '@/data/seed'
+import { initialExercises, initialProfile } from '@/data/seed'
 import type { AthleteProfile } from '@/types/domain'
 
 const NOW = new Date('2026-11-25T12:00:00') // Wednesday
@@ -134,6 +134,15 @@ describe('strength', () => {
       session({ type: 'gym', status: 'completed', date, gym: { routineId: null, exercises: [{ id: 'x', exerciseId: 'hack', name: 'Hack squat', muscleGroup: 'Q', restSec: null, notes: '', sets: [{ reps, weightKg, rir: 2 }] }] } })
     const pr = personalRecords([gym('2026-11-20', 80, 8), gym('2026-11-24', 90, 5), gym('2026-11-25', 85, 8)])
     expect(pr[0]).toMatchObject({ maxWeight: 90, repsAtMax: 5, date: '2026-11-24' })
+  })
+})
+
+describe('seed data', () => {
+  it('uses the same unique ids on every device', () => {
+    const ids = initialExercises().map((e) => e.id)
+    expect(ids).toEqual(initialExercises().map((e) => e.id))
+    expect(new Set(ids).size).toBe(ids.length)
+    expect(ids).toContain('ex-hack-squat')
   })
 })
 

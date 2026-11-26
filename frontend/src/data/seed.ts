@@ -105,8 +105,12 @@ const EXERCISES: [string, string, boolean][] = [
   ['Jalón neutro', 'Espalda', true],
 ]
 
+/** Stable id from a name, so every device seeds the same records and syncing never duplicates them. */
+const seedId = (prefix: string, name: string) =>
+  `${prefix}-${name.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`
+
 export function initialExercises(): NewEntity<Exercise>[] {
-  return EXERCISES.map(([name, muscleGroup, upperBody]) => ({ id: uid(), name, muscleGroup, upperBody, notes: '' }))
+  return EXERCISES.map(([name, muscleGroup, upperBody]) => ({ id: seedId('ex', name), name, muscleGroup, upperBody, notes: '' }))
 }
 
 export function initialRoutines(exercises: Exercise[]): NewEntity<Routine>[] {
@@ -116,6 +120,7 @@ export function initialRoutines(exercises: Exercise[]): NewEntity<Routine>[] {
   })
   return [
     {
+      id: seedId('rt', 'Tren inferior'),
       name: 'Tren inferior',
       description: 'Fuerza de piernas y cadena posterior. No carga el hombro.',
       items: [
@@ -124,11 +129,13 @@ export function initialRoutines(exercises: Exercise[]): NewEntity<Routine>[] {
       ],
     },
     {
+      id: seedId('rt', 'Core y agarre'),
       name: 'Core y agarre',
       description: 'Complementario compatible con la restricción de hombro.',
       items: [item('Core (plancha / dead bug)', 3, 1), item('Agarre (gripper / pinza)', 4, 12)],
     },
     {
+      id: seedId('rt', 'Tren superior'),
       name: 'Tren superior (requiere autorización)',
       description: 'Solo con autorización médica para cargas de tren superior.',
       items: [item('Remo con apoyo', 3, 10), item('Jalón neutro', 3, 10), item('Core (plancha / dead bug)', 3, 1)],

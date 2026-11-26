@@ -16,8 +16,9 @@ import { round } from '@/lib/utils'
 import { useSessionDialogs } from '@/features/training/SessionDialogs'
 import { EMPTY_FILTERS, filterSessions, SessionFiltersBar, SessionList } from '@/features/training/SessionList'
 import { ExerciseCatalog, RoutineManager } from './GymCatalog'
+import { NextSessionCard } from './NextSessionCard'
 
-type Tab = 'sessions' | 'progress' | 'routines'
+type Tab = 'next' | 'sessions' | 'progress' | 'routines'
 
 export function GymPage() {
   const sessions = useSessions()
@@ -25,7 +26,7 @@ export function GymPage() {
   const profile = useProfile()
   const dialogs = useSessionDialogs()
   const unit = profile.settings.weightUnit
-  const [tab, setTab] = useState<Tab>('sessions')
+  const [tab, setTab] = useState<Tab>('next')
   const [filters, setFilters] = useState(EMPTY_FILTERS)
   const gym = sessions.filter((s) => s.type === 'gym')
   const logged = loggedExerciseIds(sessions)
@@ -48,10 +49,13 @@ export function GymPage() {
         </Alert>
       )}
       <Tabs className="mb-4" value={tab} onChange={setTab} options={[
+        { value: 'next', label: 'Siguiente sesión' },
         { value: 'sessions', label: 'Sesiones' },
         { value: 'progress', label: 'Progreso y récords' },
         { value: 'routines', label: 'Rutinas y ejercicios' },
       ]} />
+
+      {tab === 'next' && <NextSessionCard />}
 
       {tab === 'sessions' && (
         <Card>

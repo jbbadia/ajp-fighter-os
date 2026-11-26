@@ -14,6 +14,8 @@ export interface LogRequest {
   type: SessionType
   /** Pre-filled actual duration (e.g. from the live timer). */
   durationMin?: number
+  /** Gym only: routine to load with the proposed loads. */
+  routineId?: string
 }
 
 interface Ctx {

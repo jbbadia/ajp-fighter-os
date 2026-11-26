@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { DailyLog, ShoulderStatus, TrainingSession } from '@/types/domain'
 import { assessRecovery, clearanceWarning, shoulderAlerts } from './recovery'
 import { cycleProgress, nextSession, weekSummary } from './metrics'
-import { estimated1RM, personalRecords } from './gymStats'
+import { estimated1RM, personalRecords, suggestNext } from './gymStats'
 import { consistencyStreak, goalProgress, type WeekStats } from './analytics'
 import { suggestAdjustments } from './adaptation'
 import { generatePlannedSessions } from './planTemplate'
@@ -125,6 +125,47 @@ describe('strength', () => {
       session({ type: 'gym', status: 'completed', date, gym: { routineId: null, exercises: [{ id: 'x', exerciseId: 'hack', name: 'Hack squat', muscleGroup: 'Q', restSec: null, notes: '', sets: [{ reps, weightKg, rir: 2 }] }] } })
     const pr = personalRecords([gym('2026-11-20', 80, 8), gym('2026-11-24', 90, 5), gym('2026-11-25', 85, 8)])
     expect(pr[0]).toMatchObject({ maxWeight: 90, repsAtMax: 5, date: '2026-11-24' })
+  })
+})
+
+describe('next gym session', () => {
+  type S = [number, number, number | null] // kg, reps, rir
+  const done = (date: string, sets: S[]) =>
+    session({ type: 'gym', status: 'completed', date, gym: { routineId: null, exercises: [{ id: 'x', exerciseId: 'hack', name: 'Hack squat', muscleGroup: 'Q', restSec: null, notes: '', sets: sets.map(([weightKg, reps, rir]) => ({ weightKg, reps, rir })) }] } })
+  const target = { sets: 3, reps: 8, rir: 2, weightKg: null }
+
+  it('uses the routine target the first time', () => {
+    expect(suggestNext([], 'hack', target)).toMatchObject({ action: 'first', sets: 3, reps: 8 })
+    expect(suggestNext([], 'hack', null)).toBeNull()
+  })
+  it('adds load when every set was completed with margin', () => {
+    const s = suggestNext([done('2026-11-20', [[60, 8, 2], [60, 8, 2], [60, 8, 3]])], 'hack', target)
+    expect(s).toMatchObject({ action: 'increase', weightKg: 62.5, reps: 8, sets: 3 })
+  })
+  it('uses smaller jumps for light loads', () => {
+    expect(suggestNext([done('2026-11-20', [[12, 8, 2], [12, 8, 2], [12, 8, 2]])], 'hack', target)?.weightKg).toBe(13)
+  })
+  it('repeats the load when it was too hard', () => {
+    expect(suggestNext([done('2026-11-20', [[60, 8, 0], [60, 8, 1], [60, 8, 0]])], 'hack', target)).toMatchObject({ action: 'repeat', weightKg: 60 })
+  })
+  it('repeats the load when a few reps were missing', () => {
+    expect(suggestNext([done('2026-11-20', [[60, 8, 1], [60, 7, 0], [60, 6, 0]])], 'hack', target)).toMatchObject({ action: 'more_reps', weightKg: 60 })
+  })
+  it('lowers the load when far from the target', () => {
+    expect(suggestNext([done('2026-11-20', [[60, 5, 0], [60, 4, 0], [60, 4, 0]])], 'hack', target)).toMatchObject({ action: 'decrease', weightKg: 54 })
+  })
+  it('uses the latest session and ignores the one being edited', () => {
+    const old = done('2026-11-18', [[50, 8, 2], [50, 8, 2], [50, 8, 2]])
+    const recent = done('2026-11-22', [[60, 5, 0], [60, 4, 0], [60, 4, 0]])
+    expect(suggestNext([recent, old], 'hack', target)?.action).toBe('decrease')
+    expect(suggestNext([recent, old], 'hack', target, { excludeId: recent.id })?.weightKg).toBe(52.5)
+  })
+  it('never adds load with red recovery', () => {
+    const s = suggestNext([done('2026-11-20', [[60, 8, 2], [60, 8, 2], [60, 8, 2]])], 'hack', target, { holdIncrease: true })
+    expect(s).toMatchObject({ action: 'hold_recovery', weightKg: 60 })
+  })
+  it('progresses bodyweight work by reps', () => {
+    expect(suggestNext([done('2026-11-20', [[0, 10, 2], [0, 10, 2], [0, 10, 2]])], 'hack', { ...target, reps: 10 })).toMatchObject({ reps: 11, weightKg: 0 })
   })
 })
 

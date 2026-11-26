@@ -74,7 +74,7 @@ Frontend: `VITE_API_URL` (por defecto `/api`, con proxy de Vite al puerto 8080) 
 ## Pruebas
 
 ```bash
-cd frontend && npm test        # 26 tests: lógica de dominio (semáforo, alertas, métricas, récords, adaptación, CSV) y fusión de la sincronización
+cd frontend && npm test        # 35 tests: lógica de dominio (semáforo, alertas, métricas, récords, progresión de gimnasio, adaptación, CSV) y fusión de la sincronización
 ```
 
 ---
@@ -86,7 +86,7 @@ cd frontend && npm test        # 26 tests: lógica de dominio (semáforo, alerta
 | **Dashboard** | Cuenta atrás, progreso del ciclo, peso, sesiones, horas BJJ/gym, cardio, semáforo de recuperación, alertas del hombro, próximo entrenamiento con cronómetro, indicadores y evolución de fuerza |
 | **Calendario** | Vista semanal y mensual, crear/editar/eliminar/duplicar, arrastrar y soltar, sesiones no planificadas, rellenar semana con la plantilla, **ajustes sugeridos** (fatiga, hombro, sesiones perdidas) |
 | **BJJ** | Registro Gi/No-Gi (rounds, compañeros, RPE, calidad técnica, fatiga), sparring round a round, estadísticas y **biblioteca técnica** (categorías, estados, técnica principal, notas, vídeos) |
-| **Gimnasio** | Rutinas personalizadas, catálogo de ejercicios, series/reps/peso/RIR/descanso, evolución de cargas, volumen semanal, récords personales. Tren superior bloqueado sin autorización médica |
+| **Gimnasio** | Rutinas personalizadas, catálogo de ejercicios, series/reps/peso/RIR/descanso, **siguiente sesión calculada** (progresión doble: sube 2,5 kg si completas todo con el RIR previsto, repite si llegas justo o faltan 1–2 reps, baja ~10 % si te quedas lejos; nunca sube con la recuperación en rojo), evolución de cargas, volumen semanal, récords personales. Tren superior bloqueado sin autorización médica |
 | **Cardio** | Zona 2, HIIT y cardio específico BJJ; FC, velocidad en Z2, RPE, tiempo en zonas (solo si el dispositivo lo da) y volumen semanal. Sin estimaciones de VO2máx |
 | **Recuperación** | Check-in diario, semáforo verde/amarillo/rojo con sus motivos, tendencias 30/60/90 días, historial editable, alertas por dolor creciente o pérdida de movilidad |
 | **Nutrición** | Calorías, macros y agua con objetivos configurables, peso diario + media de 7 días, medias semanales, suplementos con dosis/horarios y registro de tomas (sin recomendaciones) |

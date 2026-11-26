@@ -12,6 +12,8 @@ import { optionalNumber, requiredNumber, validate, type FieldErrors } from '@/li
 import { kgToUnit, unitToKg } from '@/lib/units'
 import { round, uid } from '@/lib/utils'
 import type { LogRequest } from '@/features/training/SessionDialogs'
+import type { NextSuggestion, NextTarget } from '@/domain/gymStats'
+import { SuggestionHint, useNextSuggestion } from './progression'
 import { CommonLogFields, NotesField, commonSchema, saveDetailedLog, useLogTarget } from '@/features/training/logCommon'
 
 interface SetForm {
@@ -27,6 +29,8 @@ interface ExForm {
   restSec: string
   notes: string
   sets: SetForm[]
+  /** Proposal calculated from the last time this exercise was done (new entries only). */
+  hint: NextSuggestion | null
 }
 
 export function GymLogDialog({ request, onClose }: { request: LogRequest; onClose: () => void }) {
@@ -37,6 +41,7 @@ export function GymLogDialog({ request, onClose }: { request: LogRequest; onClos
   const unit = profile.settings.weightUnit
   const allowedUpper = profile.shoulder.loadsAuthorized
   const { session, initial } = useLogTarget(request)
+  const suggest = useNextSuggestion()
 
   const fromLog = (e: ExerciseLog): ExForm => ({
     id: e.id,
@@ -46,47 +51,61 @@ export function GymLogDialog({ request, onClose }: { request: LogRequest; onClos
     restSec: e.restSec == null ? '' : String(e.restSec),
     notes: e.notes,
     sets: e.sets.map((s) => ({ reps: String(s.reps), weight: String(round(kgToUnit(s.weightKg, unit), 1)), rir: s.rir == null ? '' : String(s.rir) })),
+    hint: null,
   })
-  const fromExercise = (ex: Exercise, sets = 3, reps = 8, weightKg: number | null = null, rir: number | null = 2, restSec: number | null = 120): ExForm => ({
-    id: uid(),
-    exerciseId: ex.id,
-    name: ex.name,
-    muscleGroup: ex.muscleGroup,
-    restSec: restSec == null ? '' : String(restSec),
-    notes: '',
-    sets: Array.from({ length: sets }, () => ({
-      reps: String(reps),
-      weight: weightKg == null ? '' : String(round(kgToUnit(weightKg, unit), 1)),
-      rir: rir == null ? '' : String(rir),
-    })),
-  })
-
   const [common, setCommon] = useState(initial)
-  const [routineId, setRoutineId] = useState<string | null>(session?.gym?.routineId ?? null)
-  const [items, setItems] = useState<ExForm[]>(session?.gym?.exercises.map(fromLog) ?? [])
-  const [adding, setAdding] = useState('')
-  const [errors, setErrors] = useState<FieldErrors>({})
+
+  /** New exercise entry, pre-filled with the proposal for this session (or the routine target the first time). */
+  const fromExercise = (ex: Exercise, target: NextTarget | null, restSec: number | null = 120): ExForm => {
+    const hint = suggest(ex.id, target, { before: common.date, excludeId: session?.id })
+    const weightKg = hint?.weightKg ?? target?.weightKg ?? null
+    const rir = hint?.rir ?? target?.rir ?? 2
+    return {
+      id: uid(),
+      exerciseId: ex.id,
+      name: ex.name,
+      muscleGroup: ex.muscleGroup,
+      restSec: restSec == null ? '' : String(restSec),
+      notes: '',
+      hint,
+      sets: Array.from({ length: hint?.sets ?? target?.sets ?? 3 }, () => ({
+        reps: String(hint?.reps ?? target?.reps ?? 8),
+        weight: weightKg == null ? '' : String(round(kgToUnit(weightKg, unit), 1)),
+        rir: rir == null ? '' : String(rir),
+      })),
+    }
+  }
 
   const exById = (id: string) => exercises.find((e) => e.id === id)
   const blocked = (exId: string) => !!exById(exId)?.upperBody && !allowedUpper
+
+  const routineItems = (id: string): ExForm[] =>
+    (routines.find((x) => x.id === id)?.items ?? [])
+      .map((it) => ({ it, ex: exById(it.exerciseId) }))
+      .filter(({ ex }) => ex && (!ex.upperBody || allowedUpper))
+      .map(({ it, ex }) => fromExercise(ex!, { sets: it.sets, reps: it.reps, rir: it.rir, weightKg: it.weightKg }, it.restSec))
+
+  // A planned "Fuerza de tren inferior" session opens with the "Tren inferior" routine already loaded.
+  const autoRoutine = session?.gym
+    ? null
+    : (request.routineId ?? routines.find((r) => session?.objective.toLowerCase().includes(r.name.toLowerCase()))?.id ?? null)
+  const [routineId, setRoutineId] = useState<string | null>(session?.gym?.routineId ?? autoRoutine)
+  const [items, setItems] = useState<ExForm[]>(() => session?.gym?.exercises.map(fromLog) ?? (autoRoutine ? routineItems(autoRoutine) : []))
+  const [adding, setAdding] = useState('')
+  const [errors, setErrors] = useState<FieldErrors>({})
 
   const loadRoutine = (id: string) => {
     setRoutineId(id || null)
     const r = routines.find((x) => x.id === id)
     if (!r) return
-    setItems(
-      r.items
-        .map((it) => ({ it, ex: exById(it.exerciseId) }))
-        .filter(({ ex }) => ex && (!ex.upperBody || allowedUpper))
-        .map(({ it, ex }) => fromExercise(ex!, it.sets, it.reps, it.weightKg, it.rir, it.restSec)),
-    )
+    setItems(routineItems(id))
     if (r.items.some((it) => blocked(it.exerciseId))) toast('Se han omitido ejercicios de tren superior sin autorización', 'error')
   }
 
   const addExercise = (id: string) => {
     const ex = exById(id)
     if (!ex || blocked(id)) return
-    setItems((xs) => [...xs, fromExercise(ex)])
+    setItems((xs) => [...xs, fromExercise(ex, null)])
     setAdding('')
   }
 
@@ -201,6 +220,7 @@ export function GymLogDialog({ request, onClose }: { request: LogRequest; onClos
                     <X />
                   </Button>
                 </div>
+                {x.hint && <SuggestionHint suggestion={x.hint} unit={unit} className="mb-2" />}
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="text-left text-[11px] text-muted-foreground">

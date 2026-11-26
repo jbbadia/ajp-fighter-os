@@ -14,6 +14,7 @@ import { round, uid } from '@/lib/utils'
 import type { LogRequest } from '@/features/training/SessionDialogs'
 import type { NextSuggestion, NextTarget } from '@/domain/gymStats'
 import { SuggestionHint, useNextSuggestion } from './progression'
+import { planForSession, routinePlan, type PlannedExercise } from './workoutPlan'
 import { CommonLogFields, NotesField, commonSchema, saveDetailedLog, useLogTarget } from '@/features/training/logCommon'
 
 interface SetForm {
@@ -79,18 +80,24 @@ export function GymLogDialog({ request, onClose }: { request: LogRequest; onClos
   const exById = (id: string) => exercises.find((e) => e.id === id)
   const blocked = (exId: string) => !!exById(exId)?.upperBody && !allowedUpper
 
-  const routineItems = (id: string): ExForm[] =>
-    (routines.find((x) => x.id === id)?.items ?? [])
-      .map((it) => ({ it, ex: exById(it.exerciseId) }))
-      .filter(({ ex }) => ex && (!ex.upperBody || allowedUpper))
-      .map(({ it, ex }) => fromExercise(ex!, { sets: it.sets, reps: it.reps, rir: it.rir, weightKg: it.weightKg }, it.restSec))
+  const fromPlan = (items: PlannedExercise[]) => items.map(({ exercise, target, restSec }) => fromExercise(exercise, target, restSec))
+  const routineItems = (id: string): ExForm[] => {
+    const r = routines.find((x) => x.id === id)
+    return r ? fromPlan(routinePlan(r, exercises, allowedUpper)) : []
+  }
 
-  // A planned "Fuerza de tren inferior" session opens with the "Tren inferior" routine already loaded.
-  const autoRoutine = session?.gym
+  // A planned session opens with its exercises loaded (routine named in the objective, or the listed activities).
+  const auto = session?.gym
     ? null
-    : (request.routineId ?? routines.find((r) => session?.objective.toLowerCase().includes(r.name.toLowerCase()))?.id ?? null)
-  const [routineId, setRoutineId] = useState<string | null>(session?.gym?.routineId ?? autoRoutine)
-  const [items, setItems] = useState<ExForm[]>(() => session?.gym?.exercises.map(fromLog) ?? (autoRoutine ? routineItems(autoRoutine) : []))
+    : request.routineId
+      ? { routineId: request.routineId, items: null }
+      : session
+        ? planForSession(session, routines, exercises, allowedUpper)
+        : null
+  const [routineId, setRoutineId] = useState<string | null>(session?.gym?.routineId ?? auto?.routineId ?? null)
+  const [items, setItems] = useState<ExForm[]>(
+    () => session?.gym?.exercises.map(fromLog) ?? (auto ? (auto.items ? fromPlan(auto.items) : routineItems(auto.routineId!)) : []),
+  )
   const [adding, setAdding] = useState('')
   const [errors, setErrors] = useState<FieldErrors>({})
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { z } from 'zod'
 import { CheckCircle2, Circle, Play, SkipForward, Square } from 'lucide-react'
 import type { TrainingSession } from '@/types/domain'
@@ -14,19 +14,8 @@ import { requiredNumber, validate, type FieldErrors } from '@/lib/validation'
 import { fmt } from '@/lib/dates'
 import { formatMinutes } from '@/lib/units'
 import { cn, nowISO } from '@/lib/utils'
-
-function useElapsed(startedAt: string | null) {
-  const [now, setNow] = useState(() => Date.now())
-  useEffect(() => {
-    if (!startedAt) return
-    const t = setInterval(() => setNow(Date.now()), 1000)
-    return () => clearInterval(t)
-  }, [startedAt])
-  return startedAt ? Math.max(0, Math.floor((now - Date.parse(startedAt)) / 1000)) : 0
-}
-
-const clock = (s: number) =>
-  [Math.floor(s / 3600), Math.floor((s % 3600) / 60), s % 60].map((n) => String(n).padStart(2, '0')).join(':')
+import { clock, useElapsed } from './timer'
+import { GymWorkout } from '@/features/gym/GymWorkout'
 
 /**
  * Run a session: start a live timer, tick off activities, then log duration + RPE.
@@ -45,6 +34,8 @@ export function SessionRunner({
   const sessions = useSessions()
   const session = sessions.find((s) => s.id === sessionId)
   if (!session) return null
+  if (SESSION_TYPES[session.type].discipline === 'gym')
+    return <GymWorkout key={session.id} session={session} onClose={onClose} onLogManually={(s) => onFinishDetailed(s, s.durationMin)} />
   return <Runner key={session.id} session={session} onClose={onClose} onFinishDetailed={onFinishDetailed} />
 }
 

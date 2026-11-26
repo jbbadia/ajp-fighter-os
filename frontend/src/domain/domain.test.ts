@@ -85,6 +85,15 @@ describe('initial plan', () => {
     expect(bjj.every((s) => s.durationMin === 90)).toBe(true)
     expect(bjj[4].objective).toMatch(/Open mat/)
   })
+  it('puts the gym after the BJJ class and uses the same ids on every device', () => {
+    const week = generatePlannedSessions(noClearance, '2026-11-23', '2026-11-29')
+    const monday = week.filter((s) => s.date === '2026-11-23')
+    expect(monday.map((s) => `${s.type} ${s.time}`)).toEqual(['bjj_gi 19:00', 'gym 20:30'])
+    expect(week.filter((s) => s.type === 'gym').every((s) => s.time === '20:30')).toBe(true)
+    const again = generatePlannedSessions(noClearance, '2026-11-23', '2026-11-29')
+    expect(again.map((s) => s.id)).toEqual(week.map((s) => s.id))
+    expect(new Set(week.map((s) => s.id)).size).toBe(week.length)
+  })
   it('includes them once authorised', () => {
     const week = generatePlannedSessions({ ...noClearance, loadsAuthorized: true, intenseSparringAuthorized: true }, '2026-11-23', '2026-11-29')
     expect(week.find((s) => s.date === '2026-11-27')!.intensity).toBe('high')

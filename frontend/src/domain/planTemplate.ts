@@ -52,7 +52,7 @@ export function weeklyTemplate(shoulder: ShoulderStatus): TemplateSession[][] {
     [
       {
         type: 'gym',
-        time: '17:30',
+        time: '20:30',
         durationMin: 60,
         intensity: 'moderate',
         objective: 'Fuerza de tren inferior',
@@ -94,7 +94,7 @@ export function weeklyTemplate(shoulder: ShoulderStatus): TemplateSession[][] {
     [
       {
         type: 'gym',
-        time: '17:30',
+        time: '20:30',
         durationMin: 60,
         intensity: 'moderate',
         objective: 'Fuerza adaptada al estado del hombro',
@@ -164,9 +164,12 @@ export function generatePlannedSessions(
   const out: NewEntity<TrainingSession>[] = []
   for (let d = fromISODate(from); toISODate(d) <= to; d = addDays(d, 1)) {
     const date = toISODate(d)
-    for (const t of template[weekdayIndex(date)]) {
+    // Day order follows the clock (gym at 20:30, after the 19:00–20:30 class).
+    for (const t of [...template[weekdayIndex(date)]].sort((a, b) => a.time.localeCompare(b.time))) {
       out.push({
         ...t,
+        // Same id on every device, so syncing PC and phone never duplicates the plan.
+        id: `tpl-${date}-${t.type}-${t.time.replace(':', '')}`,
         date,
         status: 'planned',
         notes: '',

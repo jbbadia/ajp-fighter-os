@@ -3,6 +3,7 @@ import type { Entity } from '@/types/domain'
 import { ALL_STORES } from './index'
 import { DATA_MODE, readTombstones, writeTombstones } from './adapters'
 import { PROFILE_ID } from './seed'
+import { removeDuplicatePlannedSessions } from './plan'
 import { collectionFingerprint, fingerprint, mergeData, type SyncData } from './syncMerge'
 
 /**
@@ -247,6 +248,8 @@ async function runSync(): Promise<void> {
   setStatus({ state: 'syncing' })
   try {
     await syncOnce(cfg)
+    // Plans generated separately on two devices are cleaned up (the removal syncs on the next round).
+    removeDuplicatePlannedSessions()
     const lastSync = new Date().toISOString()
     saveConfig({ ...cfg, lastSync })
     setStatus({ state: 'ok', lastSync, error: null })

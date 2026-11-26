@@ -15,7 +15,7 @@ import { generatePlannedSessions } from '@/domain/planTemplate'
 import { addDays, toISODate, todayISO, weekRange } from '@/lib/dates'
 import { createAdapter } from './adapters'
 import { CollectionStore, useCollection } from './store'
-import { PLAN_VERSION, replanFutureTemplateSessions } from './plan'
+import { PLAN_VERSION, removeDuplicatePlannedSessions, replanFutureTemplateSessions } from './plan'
 import { isSyncConfigured, syncNow } from './sync'
 import { initialExercises, initialProfile, initialRoutines, migrateProfile, PROFILE_ID } from './seed'
 
@@ -89,6 +89,7 @@ async function doBootstrap(userName?: string) {
       profileStore.update(PROFILE_ID, { planVersion: PLAN_VERSION })
     }
   }
+  removeDuplicatePlannedSessions()
   if (exerciseStore.getSnapshot().length === 0) {
     const exercises = initialExercises().map((e) => exerciseStore.create(e))
     if (routineStore.getSnapshot().length === 0) initialRoutines(exercises).forEach((r) => routineStore.create(r))

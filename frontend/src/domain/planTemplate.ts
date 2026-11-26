@@ -52,7 +52,7 @@ export function weeklyTemplate(shoulder: ShoulderStatus): TemplateSession[][] {
     [
       {
         type: 'gym',
-        time: '20:30',
+        time: '21:00',
         durationMin: 60,
         intensity: 'moderate',
         objective: 'Fuerza de tren inferior',
@@ -66,7 +66,7 @@ export function weeklyTemplate(shoulder: ShoulderStatus): TemplateSession[][] {
     [
       {
         type: 'cardio_z2',
-        time: '17:30',
+        time: '21:00',
         durationMin: 45,
         intensity: 'low',
         objective: 'Base aeróbica (Zona 2)',
@@ -94,7 +94,7 @@ export function weeklyTemplate(shoulder: ShoulderStatus): TemplateSession[][] {
     [
       {
         type: 'gym',
-        time: '20:30',
+        time: '21:00',
         durationMin: 60,
         intensity: 'moderate',
         objective: 'Fuerza adaptada al estado del hombro',
@@ -155,6 +155,12 @@ export function weeklyTemplate(shoulder: ShoulderStatus): TemplateSession[][] {
 }
 
 /** Materialise the template as planned sessions for every day in [from, to]. */
+function addMinutes(time: string, min: number): string {
+  const [h, m] = time.split(':').map(Number)
+  const total = h * 60 + m + min
+  return `${String(Math.floor(total / 60) % 24).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`
+}
+
 export function generatePlannedSessions(
   shoulder: ShoulderStatus,
   from: ISODate,
@@ -164,12 +170,15 @@ export function generatePlannedSessions(
   const out: NewEntity<TrainingSession>[] = []
   for (let d = fromISODate(from); toISODate(d) <= to; d = addDays(d, 1)) {
     const date = toISODate(d)
-    // Day order follows the clock (gym at 20:30, after the 19:00–20:30 class).
-    for (const t of [...template[weekdayIndex(date)]].sort((a, b) => a.time.localeCompare(b.time))) {
+    // Day order: BJJ (19:00–20:30) → 30 min rest → cardio → gym. With cardio and gym the same day, the gym starts 30 min after the cardio ends.
+    let afterCardio: string | null = null
+    for (const base of [...template[weekdayIndex(date)]].sort((a, b) => a.time.localeCompare(b.time) || (a.type === 'gym' ? 1 : b.type === 'gym' ? -1 : 0))) {
+      const t = base.type === 'gym' && afterCardio && afterCardio > base.time ? { ...base, time: afterCardio } : base
+      if (t.type.startsWith('cardio')) afterCardio = addMinutes(t.time, t.durationMin + 30)
       out.push({
         ...t,
         // Same id on every device, so syncing PC and phone never duplicates the plan.
-        id: `tpl-${date}-${t.type}-${t.time.replace(':', '')}`,
+        id: `tpl-${date}-${t.type}-${base.time.replace(':', '')}`,
         date,
         status: 'planned',
         notes: '',

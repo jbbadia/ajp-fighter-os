@@ -7,8 +7,9 @@ import { sessionStore } from './index'
  * so existing users get their future planned sessions regenerated once.
  * v2: academy timetable (classes 19:00–20:30, Friday open mat 19:00, Saturday open mat 10:00).
  * v3: gym at 20:30 after BJJ; fixed ids so two synced devices generate the same sessions.
+ * v4: gym and cardio at 21:00 (30 min rest after the 19:00–20:30 class); the gym always goes last.
  */
-export const PLAN_VERSION = 3
+export const PLAN_VERSION = 4
 
 /**
  * Rebuilds the planned template sessions from `from` onwards with the current template.

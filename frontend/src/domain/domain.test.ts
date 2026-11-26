@@ -88,8 +88,16 @@ describe('initial plan', () => {
   it('puts the gym after the BJJ class and uses the same ids on every device', () => {
     const week = generatePlannedSessions(noClearance, '2026-11-23', '2026-11-29')
     const monday = week.filter((s) => s.date === '2026-11-23')
-    expect(monday.map((s) => `${s.type} ${s.time}`)).toEqual(['bjj_gi 19:00', 'gym 20:30'])
-    expect(week.filter((s) => s.type === 'gym').every((s) => s.time === '20:30')).toBe(true)
+    expect(monday.map((s) => `${s.type} ${s.time}`)).toEqual(['bjj_gi 19:00', 'gym 21:00'])
+    expect(week.filter((s) => s.type === 'gym').every((s) => s.time === '21:00')).toBe(true)
+    const tuesday = week.filter((s) => s.date === '2026-11-24')
+    expect(tuesday.map((s) => `${s.type} ${s.time}`)).toEqual(['bjj_nogi 19:00', 'cardio_z2 21:00'])
+    // gym and BJJ/cardio on the same day: the gym is always last
+    for (const day of new Set(week.map((s) => s.date))) {
+      const d = week.filter((s) => s.date === day)
+      const gym = d.find((s) => s.type === 'gym')
+      if (gym) expect(d.filter((s) => s.type !== 'gym' && s.type !== 'mobility').every((s) => s.time < gym.time)).toBe(true)
+    }
     const again = generatePlannedSessions(noClearance, '2026-11-23', '2026-11-29')
     expect(again.map((s) => s.id)).toEqual(week.map((s) => s.id))
     expect(new Set(week.map((s) => s.id)).size).toBe(week.length)

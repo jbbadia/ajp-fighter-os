@@ -4,7 +4,8 @@ import type { DailyLog, ShoulderMobility } from '@/types/domain'
 import { dailyLogStore, useDailyLogs, useProfile } from '@/data'
 import { Dialog } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Field, Input, ScaleInput, Select, Textarea } from '@/components/ui/form'
+import { Field, Input, ScaleInput, Select, Switch, Textarea } from '@/components/ui/form'
+import { Minus, Plus } from 'lucide-react'
 import { useToast } from '@/components/ui/toast'
 import { optionalNumber, validate, type FieldErrors } from '@/lib/validation'
 import { kgToUnit, unitToKg } from '@/lib/units'
@@ -50,6 +51,8 @@ function CheckInForm({ onClose, initialDate }: { onClose: () => void; initialDat
       shoulderPain: l?.shoulderPain ?? null,
     } as Scales,
     mobility: (l?.shoulderMobility ?? '') as ShoulderMobility | '',
+    nightOut: l?.nightOut ?? false,
+    drinks: l?.drinks ?? 0,
     notes: l?.notes ?? '',
   })
 
@@ -79,6 +82,8 @@ function CheckInForm({ onClose, initialDate }: { onClose: () => void; initialDat
       restingHr: r.data.restingHr,
       ...form.scales,
       shoulderMobility: form.mobility || null,
+      nightOut: form.nightOut,
+      drinks: form.nightOut ? form.drinks : null,
       notes: form.notes.trim(),
     }
     if (existing) dailyLogStore.update(existing.id, data)
@@ -139,6 +144,26 @@ function CheckInForm({ onClose, initialDate }: { onClose: () => void; initialDat
             <option value="very_limited">Muy limitada</option>
           </Select>
         </Field>
+
+        <div className="space-y-3 rounded-lg border border-border p-3">
+          <Switch
+            id="ci-party"
+            checked={form.nightOut}
+            onChange={(v) => setForm((f) => ({ ...f, nightOut: v }))}
+            label="🍸 Salí de fiesta"
+            description="Para tenerlo en cuenta al valorar tu recuperación y tus entrenos."
+          />
+          {form.nightOut && (
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-sm">Cubatas / copas</span>
+              <div className="flex items-center gap-2">
+                <Button size="icon" variant="secondary" aria-label="Una copa menos" onClick={() => setForm((f) => ({ ...f, drinks: Math.max(0, f.drinks - 1) }))}><Minus /></Button>
+                <span className="w-8 text-center font-display text-2xl font-bold tabular" aria-live="polite">{form.drinks}</span>
+                <Button size="icon" variant="secondary" aria-label="Una copa más" onClick={() => setForm((f) => ({ ...f, drinks: Math.min(50, f.drinks + 1) }))}><Plus /></Button>
+              </div>
+            </div>
+          )}
+        </div>
 
         <Field label="Notas" htmlFor="ci-notes">
           <Textarea id="ci-notes" value={form.notes} maxLength={1000} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} />

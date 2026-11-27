@@ -11,6 +11,7 @@ import { Alert, EmptyState } from '@/components/ui/misc'
 import { useToast } from '@/components/ui/toast'
 import { fmt, todayISO } from '@/lib/dates'
 import { kgToUnit, unitToKg } from '@/lib/units'
+import { SkipDialog } from '@/features/training/SkipDialog'
 import { cn, nowISO, round, uid } from '@/lib/utils'
 import { saveDetailedLog } from '@/features/training/logCommon'
 import { clock, mmss, useElapsed } from '@/features/training/timer'
@@ -152,12 +153,9 @@ export function GymWorkout({
     onClose()
   }
 
-  const skip = () => {
-    localStorage.removeItem(draftKey(session.id))
-    sessionStore.update(session.id, { status: 'skipped', startedAt: null })
-    toast('Sesión marcada como no realizada')
-    onClose()
-  }
+  const [skipping, setSkipping] = useState(false)
+  // Not done (can't go, class cancelled…) or remove it from the calendar.
+  const skip = () => setSkipping(true)
 
   const goFinish = () => {
     setDuration(String(session.startedAt ? Math.max(1, Math.round(elapsed / 60)) : session.durationMin))
@@ -224,8 +222,8 @@ export function GymWorkout({
       </>
     ) : (
       <>
-        <Button variant="ghost" className="px-3" aria-label="No realizada" title="No realizada" onClick={skip}>
-          <SkipForward /> <span className="hidden sm:inline">No realizada</span>
+        <Button variant="ghost" className="px-3" aria-label="No voy / quitar" title="No voy / quitar" onClick={skip}>
+          <SkipForward /> <span className="hidden sm:inline">No voy / quitar</span>
         </Button>
         <Button variant="secondary" className="px-3" onClick={() => onLogManually(session)}>
           <ClipboardList /> <span className="sm:hidden">Ya hecha</span><span className="hidden sm:inline">Registrar ya hecha</span>
@@ -235,6 +233,7 @@ export function GymWorkout({
     )
 
   return (
+    <>
     <Dialog
       open
       onClose={onClose}
@@ -370,6 +369,8 @@ export function GymWorkout({
         </div>
       )}
     </Dialog>
+    {skipping && <SkipDialog session={session} onClose={() => setSkipping(false)} onDone={onClose} />}
+    </>
   )
 }
 

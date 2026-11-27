@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { z } from 'zod'
 import { ClipboardList, Copy, Save } from 'lucide-react'
-import type { Intensity, SessionStatus, SessionType, TrainingSession } from '@/types/domain'
+import type { Intensity, SessionStatus, SessionType, SkipReason, TrainingSession } from '@/types/domain'
 import { sessionStore, useProfile, useSessions } from '@/data'
 import { Dialog } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -9,7 +9,7 @@ import { ConfirmButton } from '@/components/ui/tabs'
 import { Field, Input, ScaleInput, Select, Textarea } from '@/components/ui/form'
 import { Alert } from '@/components/ui/misc'
 import { useToast } from '@/components/ui/toast'
-import { hasDetailedLog, INTENSITY_LABEL, SESSION_TYPE_OPTIONS, STATUS_LABEL } from '@/domain/sessionMeta'
+import { hasDetailedLog, INTENSITY_LABEL, SESSION_TYPE_OPTIONS, SKIP_REASONS, STATUS_LABEL } from '@/domain/sessionMeta'
 import { clearanceWarning } from '@/domain/recovery'
 import { requiredNumber, validate, type FieldErrors } from '@/lib/validation'
 import { todayISO } from '@/lib/dates'
@@ -62,6 +62,7 @@ export function SessionEditor({
     notes: base.notes,
     actualDuration: String(base.result?.durationMin ?? base.durationMin),
     rpe: base.result?.rpe ?? null,
+    skipReason: (base.skipReason ?? '') as SkipReason | '',
   })
   const [errors, setErrors] = useState<FieldErrors>({})
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((x) => ({ ...x, [k]: v }))
@@ -100,6 +101,7 @@ export function SessionEditor({
       description: f.description.trim(),
       activities: f.activities.split('\n').map((a) => a.trim()).filter(Boolean),
       status: f.status,
+      skipReason: f.status === 'skipped' ? f.skipReason || null : null,
       notes: f.notes.trim(),
       result,
       startedAt: null,
@@ -190,6 +192,14 @@ export function SessionEditor({
               {(['planned', 'completed', 'skipped'] as const).map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
             </Select>
           </Field>
+          {f.status === 'skipped' && (
+            <Field label="Motivo" htmlFor="se-skip">
+              <Select id="se-skip" value={f.skipReason} onChange={(e) => set('skipReason', e.target.value as SkipReason | '')}>
+                <option value="">Sin indicar</option>
+                {SKIP_REASONS.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
+              </Select>
+            </Field>
+          )}
         </div>
         {completing && !isRest && (
           <div className="grid gap-3 rounded-lg border border-border p-3 sm:grid-cols-[140px_1fr]">

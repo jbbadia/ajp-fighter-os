@@ -119,6 +119,8 @@ export type SessionType =
 
 export type Intensity = 'low' | 'moderate' | 'high'
 export type SessionStatus = 'planned' | 'in_progress' | 'completed' | 'skipped'
+/** Why a session was not done. */
+export type SkipReason = 'cant_attend' | 'class_cancelled' | 'injury' | 'other'
 
 /** What a planned session needs authorised before it can be done as written. */
 export type ClearanceRequirement = 'upper_body_loads' | 'intense_sparring'
@@ -219,6 +221,7 @@ export interface TrainingSession extends Entity {
   requiresClearance: ClearanceRequirement | null
   startedAt: ISODateTime | null
   result: SessionResult | null
+  skipReason?: SkipReason | null
   bjj?: BjjLog | null
   gym?: GymLog | null
   cardio?: CardioLog | null
@@ -349,6 +352,9 @@ export interface DailyLog extends Entity {
   restingHr: number | null
   shoulderPain: number | null // 0-10
   shoulderMobility: ShoulderMobility | null
+  /** Went out partying that day and how many drinks (cubatas). */
+  nightOut?: boolean | null
+  drinks?: number | null
   notes: string
 }
 

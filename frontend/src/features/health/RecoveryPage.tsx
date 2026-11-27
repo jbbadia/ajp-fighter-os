@@ -105,7 +105,7 @@ export function RecoveryPage() {
               <table className="w-full min-w-[760px] text-sm">
                 <thead>
                   <tr className="text-left text-xs text-muted-foreground">
-                    {['Fecha', 'Peso', 'Sueño', 'Calidad', 'Fatiga', 'Estrés', 'Dolor musc.', 'General', 'FC rep.', 'Hombro', ''].map((h) => (
+                    {['Fecha', 'Peso', 'Sueño', 'Calidad', 'Fatiga', 'Estrés', 'Dolor musc.', 'General', 'FC rep.', 'Hombro', 'Fiesta', ''].map((h) => (
                       <th key={h} className="pb-2 pr-3 font-medium">{h}</th>
                     ))}
                   </tr>
@@ -126,6 +126,7 @@ export function RecoveryPage() {
                         {l.shoulderPain ?? '—'}
                         {l.shoulderMobility && <span className="block text-[11px] text-muted-foreground">{MOBILITY[l.shoulderMobility]}</span>}
                       </td>
+                      <td className="whitespace-nowrap pr-3">{l.nightOut ? `🍸 ${l.drinks ?? 0}` : '—'}</td>
                       <td className="whitespace-nowrap text-right">
                         <Button size="icon" variant="ghost" aria-label="Editar" onClick={() => setDialog({ date: l.date })}><Pencil /></Button>
                         <ConfirmButton size="icon" variant="ghost" aria-label="Eliminar" title="Eliminar check-in" message={`Se eliminará el check-in del ${fmt(l.date, 'd MMM yyyy')}.`} onConfirm={() => { dailyLogStore.remove(l.id); toast('Check-in eliminado') }}>

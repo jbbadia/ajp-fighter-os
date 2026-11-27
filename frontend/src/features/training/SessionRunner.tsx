@@ -13,6 +13,7 @@ import { hasDetailedLog, INTENSITY_LABEL, SESSION_TYPES } from '@/domain/session
 import { requiredNumber, validate, type FieldErrors } from '@/lib/validation'
 import { fmt } from '@/lib/dates'
 import { formatMinutes } from '@/lib/units'
+import { SkipDialog } from '@/features/training/SkipDialog'
 import { cn, nowISO } from '@/lib/utils'
 import { clock, useElapsed } from './timer'
 import { GymWorkout } from '@/features/gym/GymWorkout'
@@ -85,11 +86,9 @@ function Runner({
     onClose()
   }
 
-  const skip = () => {
-    sessionStore.update(session.id, { status: 'skipped', startedAt: null })
-    toast('Sesión marcada como no realizada')
-    onClose()
-  }
+  const [skipping, setSkipping] = useState(false)
+  // Not done (can't go, class cancelled…) or remove it from the calendar.
+  const skip = () => setSkipping(true)
 
   const toggle = (i: number) =>
     setDone((d) => {
@@ -114,7 +113,7 @@ function Runner({
     ) : (
       <>
         <Button variant="ghost" onClick={skip}>
-          <SkipForward /> No realizada
+          <SkipForward /> No voy / quitar
         </Button>
         <Button variant="secondary" onClick={goFinish}>Registrar ya hecha</Button>
         <Button onClick={start}>
@@ -124,6 +123,7 @@ function Runner({
     )
 
   return (
+    <>
     <Dialog
       open
       onClose={onClose}
@@ -172,5 +172,7 @@ function Runner({
         </div>
       )}
     </Dialog>
+    {skipping && <SkipDialog session={session} onClose={() => setSkipping(false)} onDone={onClose} />}
+    </>
   )
 }

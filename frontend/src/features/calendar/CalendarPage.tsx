@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button'
 import { Tabs } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/misc'
 import { useToast } from '@/components/ui/toast'
-import { DISCIPLINE_STYLE, SESSION_TYPES, STATUS_LABEL } from '@/domain/sessionMeta'
+import { DISCIPLINE_STYLE, SESSION_TYPES, skipLabel, STATUS_LABEL } from '@/domain/sessionMeta'
 import { suggestAdjustments } from '@/domain/adaptation'
 import { generatePlannedSessions } from '@/domain/planTemplate'
 import { addDays, fmt, fromISODate, todayISO, toISODate } from '@/lib/dates'
@@ -203,6 +203,15 @@ export function CalendarPage() {
                 {list.map((s) => (
                   <SessionChip key={s.id} s={s} compact={view === 'month'} onClick={() => dialogs.open(s.id)} onEdit={() => dialogs.edit(s.id)} />
                 ))}
+                {(() => {
+                  const party = logs.find((l) => l.date === d && l.nightOut)
+                  return party ? (
+                    <span className="flex items-center gap-1 rounded-md border border-border px-1.5 py-1 text-[11px] text-muted-foreground" title="Saliste de fiesta">
+                      <span aria-hidden>🍸</span>
+                      <span className="truncate">{view === 'month' ? (party.drinks ?? '') : `Fiesta${party.drinks != null ? ` · ${party.drinks} ${party.drinks === 1 ? 'cubata' : 'cubatas'}` : ''}`}</span>
+                    </span>
+                  ) : null
+                })()}
                 {profile.rehab && (() => {
                   // Physio rehab: every day, at any time (not a training session, so it does not count in the stats).
                   const n = sessionsOn(rehabLogs, d)
@@ -248,7 +257,7 @@ function SessionChip({ s, compact, onClick, onEdit }: { s: TrainingSession; comp
         s.status === 'skipped' && 'opacity-50 line-through',
       )}
     >
-      <button type="button" onClick={onClick} className="w-full px-1.5 py-1 text-left cursor-pointer" title={`${meta.label} · ${STATUS_LABEL[s.status]}`}>
+      <button type="button" onClick={onClick} className="w-full px-1.5 py-1 text-left cursor-pointer" title={`${meta.label} · ${STATUS_LABEL[s.status]}${skipLabel(s.skipReason) && s.status === 'skipped' ? ` · ${skipLabel(s.skipReason)}` : ''}`}>
         <span className="flex items-center gap-1 font-medium">
           {s.status === 'completed' ? <CheckCircle2 className="size-3 shrink-0" aria-label="Completada" /> : <meta.icon className="size-3 shrink-0" aria-hidden />}
           <span className="truncate">{compact ? meta.short : meta.label}</span>
@@ -259,6 +268,7 @@ function SessionChip({ s, compact, onClick, onEdit }: { s: TrainingSession; comp
             {s.objective && <span className="mt-0.5 line-clamp-2 block text-[11px] opacity-80">{s.objective}</span>}
             <span className="mt-1 flex flex-wrap gap-1">
               {s.unplanned && <Badge className="bg-background/60 px-1 py-0 text-[10px]">No planificada</Badge>}
+              {s.status === 'skipped' && skipLabel(s.skipReason) && <Badge className="bg-background/60 px-1 py-0 text-[10px] no-underline">{skipLabel(s.skipReason)}</Badge>}
               {s.status === 'in_progress' && <Badge className="bg-background/60 px-1 py-0 text-[10px]">En curso</Badge>}
             </span>
           </>

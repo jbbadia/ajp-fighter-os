@@ -72,6 +72,7 @@ public class Validators {
                 .string("notes", 0, 4000, false)
                 .stringList("activities", 50, 200, false)
                 .bool("unplanned", true)
+                .oneOf("skipReason", Set.of("cant_attend", "class_cancelled", "injury", "other"), false)
                 .object("result", false, r -> r.number("durationMin", 1, 600, true).integer("rpe", 1, 10, true).string("notes", 0, 4000, false))
                 .object("bjj", false, b -> b
                         .oneOf("modality", MODALITY, true)
@@ -114,6 +115,8 @@ public class Validators {
                 .number("restingHr", 25, 140, false)
                 .integer("shoulderPain", 0, 10, false)
                 .oneOf("shoulderMobility", MOBILITY, false)
+                .bool("nightOut", false)
+                .integer("drinks", 0, 50, false)
                 .string("notes", 0, 2000, false));
     }
 

@@ -16,6 +16,7 @@ import type {
   Modality,
   RoundResult,
   SessionStatus,
+  SkipReason,
   SessionType,
   TechniqueCategory,
   TechniqueStatus,
@@ -47,6 +48,15 @@ export const INTENSITY_LABEL: Record<Intensity, string> = {
   moderate: 'Moderada',
   high: 'Alta',
 }
+
+export const SKIP_REASONS: { value: SkipReason; label: string; short: string }[] = [
+  { value: 'cant_attend', label: 'No puedo ir', short: 'No pude ir' },
+  { value: 'class_cancelled', label: 'Clase cancelada', short: 'Cancelada' },
+  { value: 'injury', label: 'Molestias / lesión', short: 'Molestias' },
+  { value: 'other', label: 'Otro motivo', short: 'Otro motivo' },
+]
+
+export const skipLabel = (r: SkipReason | null | undefined) => SKIP_REASONS.find((x) => x.value === r)?.short ?? null
 
 export const STATUS_LABEL: Record<SessionStatus, string> = {
   planned: 'Planificada',

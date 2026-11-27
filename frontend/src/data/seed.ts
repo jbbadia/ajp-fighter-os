@@ -1,6 +1,7 @@
 import type { AthleteProfile, ChecklistItem, Exercise, ISODate, PrepPhase, Routine } from '@/types/domain'
 import { addDays, daysUntil, fromISODate, toISODate, todayISO } from '@/lib/dates'
 import { uid } from '@/lib/utils'
+import { DEFAULT_REHAB } from '@/domain/rehab'
 import type { NewEntity } from './store'
 
 export const PROFILE_ID = 'me'
@@ -78,6 +79,7 @@ export function initialProfile(name = 'Deportista'): NewEntity<AthleteProfile> {
     phases: defaultPhases(prepStartDate, compDate),
     checklist: defaultChecklist(),
     rules: { matchDurationMin: null, weightLimitKg: null, weighInNotes: '', sourceUrl: '' },
+    rehab: { ...DEFAULT_REHAB },
   }
 }
 
@@ -88,6 +90,8 @@ export function migrateProfile(p: AthleteProfile): AthleteProfile | null {
   if (!p.nutritionTargets) patch.nutritionTargets = { calories: null, proteinG: null, carbsG: null, fatG: null, waterL: null }
   if (!p.phases) patch.phases = defaultPhases(p.prepStartDate, p.competition.date)
   if (!p.checklist) patch.checklist = defaultChecklist()
+  // Physio-prescribed shoulder rehab (Derby programme), starting at the first exercise of each section.
+  if (!p.rehab) patch.rehab = { ...DEFAULT_REHAB }
   if (!p.rules) patch.rules = { matchDurationMin: null, weightLimitKg: null, weighInNotes: '', sourceUrl: '' }
   return Object.keys(patch).length ? { ...p, ...patch } : null
 }

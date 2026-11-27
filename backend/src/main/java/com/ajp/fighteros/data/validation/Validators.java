@@ -50,7 +50,12 @@ public class Validators {
                 .object("settings", true, s -> s.oneOf("weightUnit", Set.of("kg", "lb"), true).oneOf("theme", Set.of("dark", "light"), true))
                 .object("rules", false, r -> r.number("matchDurationMin", 0.5, 30, false).number("weightLimitKg", 20, 500, false))
                 .objectList("phases", 12, false, p -> p.string("name", 1, 80, true).date("start", true).date("end", true))
-                .objectList("checklist", 200, false, i -> i.string("text", 1, 200, true).bool("done", true)));
+                .objectList("checklist", 200, false, i -> i.string("text", 1, 200, true).bool("done", true))
+                .object("rehab", false, r -> r
+                        .integer("s1", 0, 50, true)
+                        .integer("s2", 0, 50, true)
+                        .oneOf("variant", Set.of("anterior", "posterior"), false)
+                        .integer("sessionsPerDay", 1, 4, true)));
     }
 
     @Bean
@@ -178,5 +183,16 @@ public class Validators {
                         .oneOf("result", RESULT, false)
                         .integer("rpe", 1, 10, false)
                         .integer("fatigue", 1, 10, false)));
+    }
+
+    /** Physio-prescribed shoulder rehab sessions (Derby programme): one exercise per section. */
+    @Bean
+    EntityValidator rehabLogValidator() {
+        return of(CollectionName.REHAB_LOGS, (id, c) -> c
+                .date("date", true)
+                .string("program", 1, 40, true)
+                .object("s1", false, s -> s.integer("index", 0, 50, true).integer("reps", 0, 1000, true))
+                .object("s2", false, s -> s.integer("index", 0, 50, true).objectList("holds", 10, true, h -> h.number("seconds", 0, 600, true)))
+                .string("notes", 0, 2000, false));
     }
 }

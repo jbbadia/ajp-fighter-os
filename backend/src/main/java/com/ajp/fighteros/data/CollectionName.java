@@ -16,7 +16,8 @@ public enum CollectionName {
     SUPPLEMENTS("supplements"),
     SUPPLEMENT_INTAKES("supplementIntakes"),
     GOALS("goals"),
-    SIMULATIONS("simulations");
+    SIMULATIONS("simulations"),
+    REHAB_LOGS("rehabLogs");
 
     private final String path;
 

@@ -4,6 +4,7 @@ import type {
   Exercise,
   NutritionLog,
   Routine,
+  RehabLog,
   Simulation,
   Supplement,
   SupplementIntake,
@@ -32,6 +33,7 @@ export const supplementStore = new CollectionStore<Supplement>('supplements', ad
 export const intakeStore = new CollectionStore<SupplementIntake>('supplementIntakes', adapter)
 export const goalStore = new CollectionStore<WeeklyGoal>('goals', adapter)
 export const simulationStore = new CollectionStore<Simulation>('simulations', adapter)
+export const rehabStore = new CollectionStore<RehabLog>('rehabLogs', adapter)
 
 export const ALL_STORES = {
   profile: profileStore,
@@ -45,6 +47,7 @@ export const ALL_STORES = {
   supplementIntakes: intakeStore,
   goals: goalStore,
   simulations: simulationStore,
+  rehabLogs: rehabStore,
 } as const
 
 const stores = Object.values(ALL_STORES) as CollectionStore<never>[]
@@ -113,3 +116,4 @@ export const useSupplements = () => useCollection(supplementStore)
 export const useIntakes = () => useCollection(intakeStore)
 export const useGoals = () => useCollection(goalStore)
 export const useSimulations = () => useCollection(simulationStore)
+export const useRehabLogs = () => useCollection(rehabStore)

@@ -74,7 +74,7 @@ Frontend: `VITE_API_URL` (por defecto `/api`, con proxy de Vite al puerto 8080) 
 ## Pruebas
 
 ```bash
-cd frontend && npm test        # 39 tests: lógica de dominio (semáforo, alertas, métricas, récords, progresión de gimnasio, adaptación, CSV) y fusión de la sincronización
+cd frontend && npm test        # 44 tests: lógica de dominio (semáforo, alertas, métricas, récords, progresión de gimnasio, adaptación, CSV) y fusión de la sincronización
 ```
 
 ---
@@ -89,6 +89,7 @@ cd frontend && npm test        # 39 tests: lógica de dominio (semáforo, alerta
 | **Gimnasio** | Rutinas personalizadas, catálogo de ejercicios, series/reps/peso/RIR/descanso, **modo entrenamiento** desde el calendario (ejercicios en orden con series, repeticiones, peso propuesto, RIR y descanso; marcar series con ✓, cuenta atrás de descanso con vibración, se conserva si cierras la app), **siguiente sesión calculada** (progresión doble: sube 2,5 kg si completas todo con el RIR previsto, repite si llegas justo o faltan 1–2 reps, baja ~10 % si te quedas lejos; nunca sube con la recuperación en rojo), evolución de cargas, volumen semanal, récords personales. Tren superior bloqueado sin autorización médica |
 | **Cardio** | Zona 2, HIIT y cardio específico BJJ; FC, velocidad en Z2, RPE, tiempo en zonas (solo si el dispositivo lo da) y volumen semanal. Sin estimaciones de VO2máx |
 | **Recuperación** | Check-in diario, semáforo verde/amarillo/rojo con sus motivos, tendencias 30/60/90 días, historial editable, alertas por dolor creciente o pérdida de movilidad |
+| **Rehab hombro** | Protocolo Derby de inestabilidad pautado por el fisio: un ejercicio de cada sección, en orden; al conseguir el objetivo (100/50/20 reps o 5 × 60 s) pasa al siguiente. Contador de repeticiones, cronómetro que para a los 60 s, 2 sesiones al día a cualquier hora, aviso en el Dashboard y marca diaria en el calendario |
 | **Nutrición** | Calorías, macros y agua con objetivos configurables, peso diario + media de 7 días, medias semanales, suplementos con dosis/horarios y registro de tomas (sin recomendaciones) |
 | **Competition Mode** | Cuenta atrás, reglamento configurable (duración, límite de peso), estado de la preparación, 4 fases editables, checklist, objetivos semanales con progreso automático y **simulador de combate** con temporizador |
 | **Analítica** | Peso 30/60/90 d, sesiones/semana, BJJ, Gi vs No-Gi, gym, cardio, cargas, RPE, recuperación, cumplimiento de objetivos, consistencia semanal + racha, comparar semanas |
@@ -123,7 +124,7 @@ GET    /api/backup             PUT  /api/backup
 ```
 
 
-Colecciones: `profile, sessions, dailyLogs, exercises, routines, techniques, nutrition, supplements, supplementIntakes, goals, simulations`. Cada entidad se guarda como documento del usuario en MongoDB (`entities`, índice único `userId+collection+entityId`) y se valida en servidor con las mismas reglas que los formularios.
+Colecciones: `profile, sessions, dailyLogs, exercises, routines, techniques, nutrition, supplements, supplementIntakes, goals, simulations, rehabLogs`. Cada entidad se guarda como documento del usuario en MongoDB (`entities`, índice único `userId+collection+entityId`) y se valida en servidor con las mismas reglas que los formularios.
 
 ## Principios
 

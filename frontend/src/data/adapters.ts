@@ -13,6 +13,7 @@ export type CollectionName =
   | 'supplementIntakes'
   | 'goals'
   | 'simulations'
+  | 'rehabLogs'
 
 /**
  * Persistence boundary. The UI never talks to storage directly.

@@ -5,6 +5,7 @@ import {
   BatteryMedium,
   CalendarCheck,
   ClipboardPlus,
+  HandHelping,
   Dumbbell,
   Gauge,
   HeartPulse,
@@ -16,7 +17,8 @@ import {
   TrendingUp,
   Trophy,
 } from 'lucide-react'
-import { useDailyLogs, useProfile, useSessions } from '@/data'
+import { useDailyLogs, useProfile, useRehabLogs, useSessions } from '@/data'
+import { DEFAULT_REHAB, sessionsOn } from '@/domain/rehab'
 import { PageHeader } from '@/components/layout/AppShell'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Alert, Badge, EmptyState, Progress, StatusBadge } from '@/components/ui/misc'
@@ -42,7 +44,7 @@ import { assessRecovery, RECOVERY_COPY, shoulderAlerts } from '@/domain/recovery
 import { BELT_LABEL } from '@/domain/sessionMeta'
 import { fmt, todayISO } from '@/lib/dates'
 import { formatHours, formatMinutes, formatWeight, kgToUnit } from '@/lib/units'
-import { round } from '@/lib/utils'
+import { cn, round } from '@/lib/utils'
 import { NextSessionCard, StatTile, WeekStrip } from './widgets'
 import { exerciseHistory, personalRecords } from '@/domain/gymStats'
 
@@ -60,6 +62,9 @@ export function DashboardPage() {
   const logs = useDailyLogs()
   const [checkInOpen, setCheckInOpen] = useState(false)
   const dialogs = useSessionDialogs()
+  const rehabLogs = useRehabLogs()
+  const rehab = profile.rehab ?? DEFAULT_REHAB
+  const rehabToday = sessionsOn(rehabLogs, todayISO())
 
   const unit = profile.settings.weightUnit
   const cycle = cycleProgress(profile)
@@ -112,6 +117,27 @@ export function DashboardPage() {
             <span className="block text-xs text-muted-foreground">{adjustments[0].title}</span>
           </span>
           <span className="shrink-0 text-primary">Revisar →</span>
+        </Link>
+      )}
+
+      {profile.rehab && (
+        <Link
+          to="/rehab"
+          className={cn(
+            'mb-6 flex items-center justify-between gap-3 rounded-xl border p-4 text-sm',
+            rehabToday >= rehab.sessionsPerDay ? 'border-good/40 bg-good/10' : 'border-border bg-card hover:bg-muted',
+          )}
+        >
+          <span className="flex items-center gap-3">
+            <HandHelping className="size-5 shrink-0 text-primary" aria-hidden />
+            <span>
+              <span className="font-medium">Rehab de hombro · hoy {Math.min(rehabToday, rehab.sessionsPerDay)}/{rehab.sessionsPerDay}</span>
+              <span className="block text-xs text-muted-foreground">
+                {rehabToday >= rehab.sessionsPerDay ? 'Hecho por hoy' : 'Pauta del fisio · protocolo Derby, a la hora que quieras'}
+              </span>
+            </span>
+          </span>
+          <span className="shrink-0 text-primary">{rehabToday >= rehab.sessionsPerDay ? 'Ver →' : 'Hacer →'}</span>
         </Link>
       )}
 

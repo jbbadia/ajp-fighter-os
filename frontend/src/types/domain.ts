@@ -77,6 +77,8 @@ export interface AthleteProfile extends Entity {
   }
   /** Version of the weekly template the planned sessions were generated with. */
   planVersion?: number
+  /** Shoulder rehab prescribed by the physio (Derby programme): current exercise of each section. */
+  rehab?: RehabSettings
   /** Competition preparation phases, configurable. */
   phases: PrepPhase[]
   checklist: ChecklistItem[]
@@ -347,5 +349,26 @@ export interface DailyLog extends Entity {
   restingHr: number | null
   shoulderPain: number | null // 0-10
   shoulderMobility: ShoulderMobility | null
+  notes: string
+}
+
+/* ───────────────────────── Shoulder rehab (physio) ───────────────────────── */
+
+export type RehabVariant = 'anterior' | 'posterior'
+
+export interface RehabSettings {
+  /** Index of the current exercise in section 1 / section 2 of the programme. */
+  s1: number
+  s2: number
+  /** Instability type as told by the physio (changes exercise 4 of section 1). */
+  variant: RehabVariant | null
+  sessionsPerDay: number
+}
+
+export interface RehabLog extends Entity {
+  date: ISODate
+  program: 'derby'
+  s1: { index: number; reps: number } | null
+  s2: { index: number; holds: { seconds: number }[] } | null
   notes: string
 }

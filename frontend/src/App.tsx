@@ -22,6 +22,7 @@ const NutritionPage = lazy(() => import('@/features/nutrition/NutritionPage').th
 const CompetitionPage = lazy(() => import('@/features/competition/CompetitionPage').then((m) => ({ default: m.CompetitionPage })))
 const AnalyticsPage = lazy(() => import('@/features/analytics/AnalyticsPage').then((m) => ({ default: m.AnalyticsPage })))
 const HistoryPage = lazy(() => import('@/features/history/HistoryPage').then((m) => ({ default: m.HistoryPage })))
+const RehabPage = lazy(() => import('@/features/rehab/RehabPage').then((m) => ({ default: m.RehabPage })))
 const ProfilePage = lazy(() => import('@/features/profile/ProfilePage').then((m) => ({ default: m.ProfilePage })))
 
 function ThemeSync() {
@@ -102,6 +103,7 @@ function AuthenticatedApp({ userId, userName }: { userId: string; userName: stri
                 ['gimnasio', GymPage],
                 ['cardio', CardioPage],
                 ['recuperacion', RecoveryPage],
+                ['rehab', RehabPage],
                 ['nutricion', NutritionPage],
                 ['competicion', CompetitionPage],
                 ['analitica', AnalyticsPage],

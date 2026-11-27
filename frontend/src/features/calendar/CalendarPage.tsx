@@ -7,9 +7,11 @@ import {
   startOfMonth,
   startOfWeek,
 } from 'date-fns'
-import { CalendarPlus, CheckCircle2, ChevronLeft, ChevronRight, Plus, Sparkles, Wand2, X } from 'lucide-react'
+import { CalendarPlus, CheckCircle2, HandHelping, ChevronLeft, ChevronRight, Plus, Sparkles, Wand2, X } from 'lucide-react'
 import type { TrainingSession } from '@/types/domain'
-import { sessionStore, useDailyLogs, useProfile, useSessions } from '@/data'
+import { sessionStore, useDailyLogs, useProfile, useRehabLogs, useSessions } from '@/data'
+import { Link } from 'react-router-dom'
+import { sessionsOn } from '@/domain/rehab'
 import { PageHeader } from '@/components/layout/AppShell'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -30,6 +32,7 @@ const DISMISSED_KEY = 'ajp-fighter-os:dismissed-adjustments'
 export function CalendarPage() {
   const sessions = useSessions()
   const logs = useDailyLogs()
+  const rehabLogs = useRehabLogs()
   const profile = useProfile()
   const dialogs = useSessionDialogs()
   const toast = useToast()
@@ -200,6 +203,24 @@ export function CalendarPage() {
                 {list.map((s) => (
                   <SessionChip key={s.id} s={s} compact={view === 'month'} onClick={() => dialogs.open(s.id)} onEdit={() => dialogs.edit(s.id)} />
                 ))}
+                {profile.rehab && (() => {
+                  // Physio rehab: every day, at any time (not a training session, so it does not count in the stats).
+                  const n = sessionsOn(rehabLogs, d)
+                  const goal = profile.rehab.sessionsPerDay
+                  return (
+                    <Link
+                      to="/rehab"
+                      title={`Rehab hombro: ${n} de ${goal} sesiones`}
+                      className={cn(
+                        'flex items-center gap-1 rounded-md border px-1.5 py-1 text-[11px]',
+                        n >= goal ? 'border-good/40 bg-good/10 text-good' : 'border-dashed border-border text-muted-foreground hover:bg-muted',
+                      )}
+                    >
+                      {n >= goal ? <CheckCircle2 className="size-3 shrink-0" /> : <HandHelping className="size-3 shrink-0" />}
+                      <span className="truncate">{view === 'month' ? `${n}/${goal}` : `Rehab hombro ${n}/${goal}`}</span>
+                    </Link>
+                  )
+                })()}
               </div>
             </div>
           )

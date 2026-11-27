@@ -112,10 +112,12 @@ function Runner({
       </Button>
     ) : (
       <>
-        <Button variant="ghost" onClick={skip}>
-          <SkipForward /> No voy / quitar
+        <Button variant="ghost" className="px-3" aria-label="No voy / quitar" title="No voy / quitar" onClick={skip}>
+          <SkipForward /> <span className="hidden sm:inline">No voy / quitar</span>
         </Button>
-        <Button variant="secondary" onClick={goFinish}>Registrar ya hecha</Button>
+        <Button variant="secondary" className="px-3" onClick={goFinish}>
+          <span className="sm:hidden">Ya hecha</span><span className="hidden sm:inline">Registrar ya hecha</span>
+        </Button>
         <Button onClick={start}>
           <Play /> Comenzar
         </Button>
@@ -148,10 +150,19 @@ function Runner({
                   <button
                     type="button"
                     onClick={() => toggle(i)}
-                    className="flex w-full items-center gap-3 rounded-lg border border-border px-3 py-2.5 text-left text-sm hover:bg-muted cursor-pointer"
+                    className="flex w-full items-start gap-3 rounded-lg border border-border px-3 py-2.5 text-left text-sm hover:bg-muted cursor-pointer"
                   >
-                    {done.has(i) ? <CheckCircle2 className="size-4 text-primary" /> : <Circle className="size-4 text-muted-foreground" />}
-                    <span className={cn(done.has(i) && 'text-muted-foreground line-through')}>{a}</span>
+                    {done.has(i) ? <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-primary" /> : <Circle className="mt-0.5 size-4 shrink-0 text-muted-foreground" />}
+                    {(() => {
+                      // "Title — detail": the detail (time, distance, reps) goes below in smaller text.
+                      const [title, ...rest] = a.split(' — ')
+                      return (
+                        <span className={cn('min-w-0', done.has(i) && 'text-muted-foreground line-through')}>
+                          <span className="font-medium">{title}</span>
+                          {rest.length > 0 && <span className="mt-0.5 block text-xs text-muted-foreground">{rest.join(' — ')}</span>}
+                        </span>
+                      )
+                    })()}
                   </button>
                 </li>
               ))}

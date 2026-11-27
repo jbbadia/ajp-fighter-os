@@ -8,8 +8,12 @@ import { sessionStore } from './index'
  * v2: academy timetable (classes 19:00–20:30, Friday open mat 19:00, Saturday open mat 10:00).
  * v3: gym at 20:30 after BJJ; fixed ids so two synced devices generate the same sessions.
  * v4: gym and cardio at 21:00 (30 min rest after the 19:00–20:30 class); the gym always goes last.
+ * v5: detailed recovery and mobility activities (time, distance, exercises and reps).
  */
-export const PLAN_VERSION = 4
+export const PLAN_VERSION = 5
+
+/** Plans older than this are regenerated; newer ones only get their texts refreshed (keeps deletions and moves). */
+export const REPLAN_BELOW = 4
 
 /**
  * Rebuilds the planned template sessions from `from` onwards with the current template.
@@ -46,4 +50,23 @@ export function removeDuplicatePlannedSessions(): number {
   }
   dupes.forEach((id) => sessionStore.remove(id))
   return dupes.length
+}
+
+/**
+ * Refreshes the description and activities of future planned template sessions with the current template,
+ * without touching their date, time or status (sessions the athlete deleted stay deleted).
+ */
+export function refreshTemplateDetails(shoulder: ShoulderStatus, from: ISODate): number {
+  const future = sessionStore.getSnapshot().filter((s) => s.date >= from && isTemplatePlan(s) && s.id.startsWith('tpl-'))
+  if (!future.length) return 0
+  const last = future.reduce((m, s) => (s.date > m ? s.date : m), from)
+  const byKey = new Map(generatePlannedSessions(shoulder, from, last).map((t) => [`${t.date}|${t.type}`, t]))
+  let n = 0
+  for (const s of future) {
+    const t = byKey.get(`${s.date}|${s.type}`)
+    if (!t || (t.description === s.description && JSON.stringify(t.activities) === JSON.stringify(s.activities))) continue
+    sessionStore.update(s.id, { description: t.description, activities: t.activities })
+    n++
+  }
+  return n
 }

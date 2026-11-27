@@ -16,7 +16,7 @@ import { generatePlannedSessions } from '@/domain/planTemplate'
 import { addDays, toISODate, todayISO, weekRange } from '@/lib/dates'
 import { createAdapter } from './adapters'
 import { CollectionStore, useCollection } from './store'
-import { PLAN_VERSION, removeDuplicatePlannedSessions, replanFutureTemplateSessions } from './plan'
+import { PLAN_VERSION, refreshTemplateDetails, removeDuplicatePlannedSessions, REPLAN_BELOW, replanFutureTemplateSessions } from './plan'
 import { isSyncConfigured, syncNow } from './sync'
 import { initialExercises, initialProfile, initialRoutines, migrateProfile, PROFILE_ID } from './seed'
 
@@ -88,7 +88,8 @@ async function doBootstrap(userName?: string) {
     if (migrated) profileStore.update(PROFILE_ID, migrated)
     // Template changed since this plan was generated: refresh the athlete's future planned sessions once.
     if ((existing.planVersion ?? 1) < PLAN_VERSION) {
-      replanFutureTemplateSessions(existing.shoulder, todayISO())
+      if ((existing.planVersion ?? 1) < REPLAN_BELOW) replanFutureTemplateSessions(existing.shoulder, todayISO())
+      else refreshTemplateDetails(existing.shoulder, todayISO())
       profileStore.update(PROFILE_ID, { planVersion: PLAN_VERSION })
     }
   }

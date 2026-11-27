@@ -9,6 +9,7 @@ import { optionalNumber, validate, type FieldErrors } from '@/lib/validation'
 import { CARDIO_KIND_LABEL } from '@/domain/sessionMeta'
 import type { LogRequest } from '@/features/training/SessionDialogs'
 import { CommonLogFields, NotesField, commonSchema, saveDetailedLog, useLogTarget } from '@/features/training/logCommon'
+import { UndoSessionButton } from '@/features/training/UndoSessionButton'
 
 const NUM_FIELDS = {
   avgHr: ['FC media (lpm)', 40, 230],
@@ -119,6 +120,7 @@ export function CardioLogDialog({ request, onClose }: { request: LogRequest; onC
       description="Introduce solo los datos que te dé tu dispositivo. No se estiman valores fisiológicos."
       footer={
         <>
+          {session && <UndoSessionButton session={session} onDone={onClose} />}
           <Button variant="ghost" onClick={onClose}>Cancelar</Button>
           <Button onClick={save}><Save /> Guardar</Button>
         </>

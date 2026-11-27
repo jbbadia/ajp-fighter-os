@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { z } from 'zod'
-import { CheckCircle2, Circle, Play, SkipForward, Square } from 'lucide-react'
+import { CheckCircle2, Circle, Play, SkipForward, Square, X } from 'lucide-react'
 import type { TrainingSession } from '@/types/domain'
 import { sessionStore, useProfile, useSessions } from '@/data'
 import { Dialog } from '@/components/ui/dialog'
@@ -63,6 +63,12 @@ function Runner({
   const [errors, setErrors] = useState<FieldErrors>({})
 
   const start = () => sessionStore.update(session.id, { status: 'in_progress', startedAt: nowISO() })
+  // Started by mistake: back to pending, as if nothing had happened.
+  const cancelStart = () => {
+    sessionStore.update(session.id, { status: 'planned', startedAt: null })
+    toast('Sesión cancelada: vuelve a estar pendiente')
+    onClose()
+  }
 
   const goFinish = () => {
     const minutes = session.startedAt ? Math.max(1, Math.round(elapsed / 60)) : session.durationMin
@@ -107,9 +113,14 @@ function Runner({
         </Button>
       </>
     ) : session.status === 'in_progress' ? (
-      <Button onClick={goFinish} className="w-full sm:w-auto">
-        <Square /> Finalizar
-      </Button>
+      <>
+        <Button variant="ghost" onClick={cancelStart}>
+          <X /> Cancelar
+        </Button>
+        <Button onClick={goFinish}>
+          <Square /> Finalizar
+        </Button>
+      </>
     ) : (
       <>
         <Button variant="ghost" className="px-3" aria-label="No voy / quitar" title="No voy / quitar" onClick={skip}>

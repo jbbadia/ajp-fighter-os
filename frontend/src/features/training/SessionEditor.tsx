@@ -15,6 +15,7 @@ import { requiredNumber, validate, type FieldErrors } from '@/lib/validation'
 import { todayISO } from '@/lib/dates'
 import { nowISO } from '@/lib/utils'
 import { useSessionDialogs } from './SessionDialogs'
+import { UndoSessionButton } from './UndoSessionButton'
 
 const blank = (): Omit<TrainingSession, 'id' | 'createdAt' | 'updatedAt'> => ({
   date: todayISO(),
@@ -140,6 +141,7 @@ export function SessionEditor({
             {existing && (
               <ConfirmButton variant="ghost" size="sm" title="Eliminar sesión" message="Esta acción no se puede deshacer." onConfirm={remove} />
             )}
+            {existing && <UndoSessionButton session={existing} onDone={onClose} />}
             {existing && (
               <Button variant="ghost" size="sm" onClick={duplicate}>
                 <Copy /> Duplicar

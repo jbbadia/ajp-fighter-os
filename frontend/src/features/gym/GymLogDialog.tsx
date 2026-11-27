@@ -16,6 +16,7 @@ import type { NextSuggestion, NextTarget } from '@/domain/gymStats'
 import { SuggestionHint, useNextSuggestion } from './progression'
 import { planForSession, routinePlan, type PlannedExercise } from './workoutPlan'
 import { CommonLogFields, NotesField, commonSchema, saveDetailedLog, useLogTarget } from '@/features/training/logCommon'
+import { UndoSessionButton } from '@/features/training/UndoSessionButton'
 
 interface SetForm {
   reps: string
@@ -180,6 +181,7 @@ export function GymLogDialog({ request, onClose }: { request: LogRequest; onClos
       description={session?.objective}
       footer={
         <>
+          {session && <UndoSessionButton session={session} onDone={onClose} />}
           <Button variant="ghost" onClick={onClose}>Cancelar</Button>
           <Button onClick={save}><Save /> Guardar</Button>
         </>

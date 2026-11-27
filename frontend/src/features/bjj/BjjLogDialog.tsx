@@ -14,6 +14,7 @@ import { RESULT_LABEL } from '@/domain/sessionMeta'
 import { clearanceWarning } from '@/domain/recovery'
 import type { LogRequest } from '@/features/training/SessionDialogs'
 import { CommonLogFields, NotesField, commonSchema, saveDetailedLog, useLogTarget } from '@/features/training/logCommon'
+import { UndoSessionButton } from '@/features/training/UndoSessionButton'
 
 type RoundForm = Omit<SparringRound, 'durationMin' | 'submissionsAttempted' | 'submissionsReceived' | 'guardPasses' | 'sweeps' | 'takedowns'> & {
   durationMin: string
@@ -139,6 +140,7 @@ export function BjjLogDialog({ request, onClose }: { request: LogRequest; onClos
       description={session?.objective}
       footer={
         <>
+          {session && <UndoSessionButton session={session} onDone={onClose} />}
           <Button variant="ghost" onClick={onClose}>Cancelar</Button>
           <Button onClick={save}><Save /> Guardar</Button>
         </>
